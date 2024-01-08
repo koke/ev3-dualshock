@@ -30,14 +30,14 @@ class Dualshock:
         buttons (dict): Dictionary of button states.
     """
 
-    threshold = 0.05
+    threshold = 0.11
     
     @classmethod
     def find_compatible_devices(cls):
         def is_compatible_device(device):
             return device.name == "Sony Interactive Entertainment Wireless Controller" or device.name == "Wireless Controller"
         
-        return filter(is_compatible_device, map(evdev.InputDevice, evdev.list_devices))
+        return list(filter(is_compatible_device, map(evdev.InputDevice, evdev.list_devices())))
 
     def __init__(self, on_button_press=None, on_report_sync=None):
             """
@@ -74,10 +74,7 @@ class Dualshock:
         Returns:
             float: The scaled value.
         """
-        scaled = float(val)/255
-        if scaled < self.threshold:
-            scaled = 0
-        return scaled
+        return float(val)/255
     
     def center(self, val):
         """
@@ -89,7 +86,11 @@ class Dualshock:
         Returns:
             float: The centered value.
         """
-        return val - 0.5
+        centered = (val - 0.5) * 2
+        if abs(centered) < self.threshold:
+            centered = 0
+        return centered
+
         
     def listen(self):
         """
